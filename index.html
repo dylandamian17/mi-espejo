@@ -2,66 +2,138 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MagicMirror Web - Dylan</title>
+    <title>Espejo Mágico - Dylan</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
+        /* ESTILOS BASE Y ROTACIÓN PARA EL MONITOR VERTICAL */
         body {
-            margin: 0;
-            padding: 0;
-            background-color: black;
-            color: white;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-            /* HACK DE ROTACIÓN PARA EL STICK ONN */
-            transform: rotate(90deg);
-            transform-origin: center;
-            width: 100vh;
-            height: 100vw;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            margin-top: -50vw;
-            margin-left: -50vh;
+            margin: 0; background: black; color: white; font-family: 'Segoe UI', 'Roboto', sans-serif;
+            overflow: hidden; display: flex; justify-content: center; align-items: center;
+            transform: rotate(90deg); transform-origin: center;
+            width: 100vh; height: 100vw; position: absolute;
+            top: 50%; left: 50%; margin-top: -50vw; margin-left: -50vh;
         }
-
         .container {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            padding: 20px;
+            width: 100%; height: 100%; display: flex; flex-direction: column;
+            justify-content: space-between; position: relative;
+        }
+        
+        /* CLIMA VISUAL ARRIBA A LA DERECHA */
+        #header { display: flex; justify-content: space-between; padding: 25px; z-index: 10; }
+        #reloj { font-size: 5.5rem; font-weight: 300; }
+        #clima-container { text-align: right; }
+        .weather-icon { font-size: 4rem; color: rgba(255,255,255,0.9); }
+        #clima-temp { font-size: 3rem; font-weight: bold; }
+        #clima-desc { font-size: 1.2rem; text-transform: capitalize; opacity: 0.7; }
+
+        /* FONDO DE GOOGLE PHOTOS */
+        #photo-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center; opacity: 0.5; /* Opacidad para que no tape el texto */
+            transition: opacity 1s ease-in-out;
         }
 
-        .top { display: flex; justify-content: space-between; }
-        .middle { text-align: center; }
-        .bottom { display: flex; justify-content: space-between; }
-        
-        #reloj { font-size: 80px; font-weight: bold; }
-        #clima { font-size: 30px; }
+        /* TARJETA DE SPOTIFY (Se sobrepone a las fotos) */
+        #spotify-card {
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; background: rgba(30,30,30,0.85);
+            padding: 25px; border-radius: 20px; width: 80%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            visibility: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 20;
+        }
+        #album-art { width: 160px; height: 160px; border-radius: 12px; margin-right: 25px; }
+        #track-name { font-size: 2.2rem; font-weight: bold; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #artist-name { font-size: 1.4rem; color: #1DB954; margin: 0; }
+        .spotify-visible { visibility: visible !important; opacity: 1 !important; }
+
+        #footer { text-align: center; padding: 20px; font-size: 1.3rem; opacity: 0.8; z-index: 10; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="top">
+        <div id="photo-container"></div>
+
+        <div id="header">
             <div id="reloj">00:00</div>
-            <div id="clima">Rosario: 25°C</div>
-        </div>
-        
-        <div class="middle">
-            <p>Sincronizando fotos...</p>
+            <div id="clima-container">
+                <span class="material-icons-round weather-icon" id="clima-icon">wb_sunny</span>
+                <div id="clima-temp">--°C</div>
+                <div id="clima-desc">Rosario</div>
+            </div>
         </div>
 
-        <div class="bottom">
-            <div id="spotify">Escuchando en Alexa...</div>
-            <div id="calendario">Próximo evento: Dpto Dylan</div>
+        <div id="spotify-card">
+            <img id="album-art" src="" alt="Album">
+            <div style="flex: 1; overflow: hidden;">
+                <p id="track-name">Cargando...</p>
+                <p id="artist-name">Artista</p>
+            </div>
         </div>
+
+        <div id="footer">Martes, 30 de diciembre</div>
     </div>
 
     <script>
-        function actualizarReloj() {
-            const ahora = new Date();
-            document.getElementById('reloj').innerText = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        // --- CONFIGURACIÓN (¡EDITÁ ESTO!) ---
+        const FOTO_URLS = [
+            // Pegá acá los links directos de tus fotos (ej: de Google Photos o Imgur)
+            // 'https://i.imgur.com/TuFoto1.jpg',
+            // 'https://i.imgur.com/TuFoto2.jpg'
+        ];
+        // --- FIN CONFIGURACIÓN ---
+
+        // RELOJ Y FECHA
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('reloj').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('footer').innerText = now.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
         }
-        setInterval(actualizarReloj, 1000);
+        setInterval(updateClock, 1000); updateClock();
+
+        // GOOGLE PHOTOS (Slideshow simple)
+        let photoIndex = 0;
+        function changePhoto() {
+            if (FOTO_URLS.length === 0) return;
+            const container = document.getElementById('photo-container');
+            container.style.backgroundImage = `url('${FOTO_URLS[photoIndex]}')`;
+            photoIndex = (photoIndex + 1) % FOTO_URLS.length;
+        }
+        if (FOTO_URLS.length > 0) {
+            changePhoto();
+            setInterval(changePhoto, 30000); // Cambia cada 30 segundos
+        }
+
+        // CLIMA (Simulado para demo - Después lo conectamos a la API)
+        function updateWeather() {
+            // Íconos: wb_sunny, cloud, grain (lluvia), thunderstorm
+            const iconos = ['wb_sunny', 'cloud', 'grain'];
+            const temp = Math.floor(Math.random() * (30 - 15) + 15);
+            document.getElementById('clima-temp').innerText = `${temp}°C`;
+            document.getElementById('clima-icon').innerText = iconos[Math.floor(Math.random() * iconos.length)];
+        }
+        updateWeather(); // Sacar esto cuando tengamos la API real
+
+        // LÓGICA DE SPOTIFY (La clave de tu pedido)
+        function showSpotify(track, artist, coverUrl) {
+            const card = document.getElementById('spotify-card');
+            const photoBg = document.getElementById('photo-container');
+            
+            document.getElementById('track-name').innerText = track;
+            document.getElementById('artist-name').innerText = artist;
+            document.getElementById('album-art').src = coverUrl;
+            
+            card.classList.add('spotify-visible');
+            photoBg.style.opacity = '0.2'; // Oscurece las fotos para que resalte Spotify
+        }
+
+        function hideSpotify() {
+            document.getElementById('spotify-card').classList.remove('spotify-visible');
+            document.getElementById('photo-container').style.opacity = '0.5'; // Vuelve la opacidad normal
+        }
+
+        // PRUEBA: Simula que Alexa pone música a los 5 segundos
+        setTimeout(() => {
+            showSpotify('Bohemian Rhapsody', 'Queen', 'https://i.scdn.co/image/ab67616d0000b273e8b066f70c206551210d902b');
+        }, 5000);
     </script>
 </body>
 </html>

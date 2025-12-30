@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>MagicMirror Web - Dylan</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+            /* HACK DE ROTACIÓN PARA EL STICK ONN */
+            transform: rotate(90deg);
+            transform-origin: center;
+            width: 100vh;
+            height: 100vw;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-top: -50vw;
+            margin-left: -50vh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .top { display: flex; justify-content: space-between; }
+        .middle { text-align: center; }
+        .bottom { display: flex; justify-content: space-between; }
+        
+        #reloj { font-size: 80px; font-weight: bold; }
+        #clima { font-size: 30px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top">
+            <div id="reloj">00:00</div>
+            <div id="clima">Rosario: 25°C</div>
+        </div>
+        
+        <div class="middle">
+            <p>Sincronizando fotos...</p>
+        </div>
+
+        <div class="bottom">
+            <div id="spotify">Escuchando en Alexa...</div>
+            <div id="calendario">Próximo evento: Dpto Dylan</div>
+        </div>
+    </div>
+
+    <script>
+        function actualizarReloj() {
+            const ahora = new Date();
+            document.getElementById('reloj').innerText = ahora.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+        setInterval(actualizarReloj, 1000);
+    </script>
+</body>
+</html>

@@ -2,139 +2,168 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Magic Mirror Dylan - Final Pro</title>
+    <title>Magic Mirror Dylan - Full Experience</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        /* 1. FONDO NEGRO ABSOLUTO Y ROTACIÓN PARA MONITOR LG */
-        body {
-            margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif;
-            overflow: hidden; display: flex; justify-content: center; align-items: center;
-            transform: rotate(90deg); transform-origin: center;
-            width: 100vh; height: 100vw; position: absolute;
-            top: 50%; left: 50%; margin-top: -50vw; margin-left: -50vh;
+        body { margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        
+        /* ROTACIÓN PARA EL MONITOR VERTICAL */
+        #rotator {
+            width: 100vh; height: 100vw; transform: rotate(90deg); transform-origin: center;
+            position: absolute; top: 50%; left: 50%; margin-left: -50vh; margin-top: -50vw;
+            display: flex; flex-direction: column; background: #000;
         }
 
-        .container { width: 100%; height: 100%; display: flex; flex-direction: column; background: #000; }
-
-        /* 2. BARRA SUPERIOR NEGRA (CLIMA Y HORA) */
-        .top-bar {
-            background: #000; height: 130px; display: flex; 
-            justify-content: space-between; align-items: center; padding: 0 60px;
-            border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 100;
-        }
-        #reloj { font-size: 5rem; font-weight: 200; }
-        .clima-box { display: flex; align-items: center; gap: 20px; text-align: right; }
-        #clima-temp { font-size: 3.5rem; font-weight: bold; }
-        .clima-icon { font-size: 4.5rem; color: #FFD700; }
-
-        /* 3. FOTOS CENTRADAS (16:9) */
-        .main-content {
-            flex: 1; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; position: relative;
-        }
-        #foto-display {
-            max-width: 95%; max-height: 55vh; /* Centrado perfecto para 16:9 */
-            object-fit: contain; border-radius: 5px;
-            transition: opacity 1.5s ease-in-out; opacity: 0;
+        /* FONDO DE FOTOS PANTALLA COMPLETA */
+        #foto-fondo {
+            position: absolute; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transition: opacity 1.5s ease-in-out, background-image 1.5s ease-in-out;
+            opacity: 0.6; z-index: 1;
         }
 
-        /* 4. FRASES (Nietzsche / Motivacionales) */
+        /* CAPA DE DATOS (Overlay) */
+        .overlay {
+            position: relative; z-index: 10; height: 100%; display: flex; 
+            flex-direction: column; justify-content: space-between;
+            padding: 50px; background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 40%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.7) 100%);
+        }
+
+        /* INFO SUPERIOR (RELOJ Y CLIMA COMPLETO) */
+        .header { display: flex; justify-content: space-between; align-items: flex-start; }
+        #reloj-box { text-align: left; }
+        #reloj { font-size: 7rem; font-weight: 200; line-height: 1; }
+        #fecha { font-size: 1.8rem; opacity: 0.8; margin-top: 10px; text-transform: capitalize; }
+        
+        .clima-box { text-align: right; }
+        .clima-main { display: flex; align-items: center; justify-content: flex-end; gap: 15px; }
+        #clima-temp { font-size: 5rem; font-weight: bold; }
+        .clima-icon { font-size: 6rem; color: #FFD700; }
+        #clima-detalles { font-size: 1.4rem; opacity: 0.8; margin-top: 5px; line-height: 1.4; }
+
+        /* FRASES (CENTRO-ABAJO) */
         #frase-box {
-            margin-top: 40px; font-size: 1.8rem; font-style: italic;
-            text-align: center; color: rgba(255,255,255,0.5); max-width: 80%;
-            line-height: 1.4; min-height: 3em;
+            text-align: center; font-size: 2.2rem; font-weight: 300; font-style: italic;
+            padding: 0 10%; text-shadow: 0 4px 10px rgba(0,0,0,0.9);
+            transition: opacity 0.5s; margin-bottom: 20px;
         }
 
-        /* 5. TARJETA SPOTIFY (LAST.FM) */
-        #spotify-card {
-            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
-            background: rgba(10,10,10,0.98); border: 1px solid #1DB954;
-            display: none; align-items: center; padding: 30px; border-radius: 25px;
-            width: 85%; z-index: 200; box-shadow: 0 0 50px rgba(0,0,0,1);
+        /* MODO PLACA SPOTIFY (REEMPLAZA TODO) */
+        #spotify-fullscreen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #121212; z-index: 100; display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 60px; transition: opacity 0.8s ease;
         }
-        #spotify-card.active { display: flex; }
-        #album-art { width: 170px; height: 170px; border-radius: 12px; margin-right: 30px; }
-        .track-title { font-size: 2.8rem; font-weight: bold; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .track-artist { font-size: 1.8rem; color: #1DB954; margin: 8px 0 0 0; }
+        #spotify-fullscreen.active { display: flex; }
+        
+        #placa-album {
+            width: 50vh; height: 50vh; border-radius: 20px;
+            box-shadow: 0 30px 100px rgba(0,0,0,1); margin-bottom: 50px;
+        }
+        .placa-info { width: 80%; text-align: center; }
+        #placa-titulo { font-size: 4rem; font-weight: bold; margin: 0; }
+        #placa-artista { font-size: 2.5rem; color: #1DB954; margin: 15px 0 0 0; }
+
+        /* CONTROLES VISUALES (ESTILO MERCADO LIBRE) */
+        .placa-controls { width: 80%; margin-top: 50px; }
+        .placa-bar { width: 100%; height: 8px; background: rgba(255,255,255,0.2); border-radius: 4px; margin-bottom: 40px; }
+        .placa-fill { width: 45%; height: 100%; background: #1DB954; border-radius: 4px; }
+        .placa-icons { display: flex; justify-content: space-between; align-items: center; font-size: 5rem; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="top-bar">
-            <div id="reloj">00:00</div>
-            <div class="clima-box">
-                <div id="clima-temp">--°C</div>
-                <span class="material-icons-round clima-icon" id="clima-icon">wb_sunny</span>
+    <div id="rotator">
+        <div id="foto-fondo"></div>
+
+        <div id="spotify-fullscreen">
+            <img id="placa-album" src="" alt="">
+            <div class="placa-info">
+                <p id="placa-titulo">Título</p>
+                <p id="placa-artista">Artista</p>
+            </div>
+            <div class="placa-controls">
+                <div class="placa-bar"><div class="placa-fill"></div></div>
+                <div class="placa-icons">
+                    <span class="material-icons-round">shuffle</span>
+                    <span class="material-icons-round" style="font-size: 6rem;">skip_previous</span>
+                    <span class="material-icons-round" style="font-size: 9rem; color:#1DB954;">play_circle_filled</span>
+                    <span class="material-icons-round" style="font-size: 6rem;">skip_next</span>
+                    <span class="material-icons-round">repeat</span>
+                </div>
             </div>
         </div>
 
-        <div class="main-content">
-            <img id="foto-display" src="" alt="">
-            <div id="frase-box">"Cargando pensamiento..."</div>
-            
-            <div id="spotify-card">
-                <img id="album-art" src="" alt="">
-                <div style="flex: 1; overflow: hidden;">
-                    <p class="track-title" id="t-name">Tema</p>
-                    <p class="track-artist" id="t-artist">Artista</p>
+        <div class="overlay">
+            <div class="header">
+                <div id="reloj-box">
+                    <div id="reloj">00:00</div>
+                    <div id="fecha">Viernes, 2 de Enero</div>
+                </div>
+                <div class="clima-box">
+                    <div class="clima-main">
+                        <div id="clima-temp">--°C</div>
+                        <span class="material-icons-round clima-icon" id="clima-icon">wb_sunny</span>
+                    </div>
+                    <div id="clima-detalles">Rosario<br>Humedad: --% | Viento: --km/h</div>
                 </div>
             </div>
+
+            <div id="frase-box">"La disciplina es el puente entre tus metas y tus logros."</div>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN INTEGRADA ---
         const GITHUB_USER = "dylandamian17";
         const REPO_NAME = "mi-espejo";
         const LASTFM_USER = "Dylandd425";
         const LASTFM_KEY = "9e7f2febccc739bfae8fda70db9eb9bd";
-        const WEATHER_KEY = "dc2af9ea2f8e8e1f857a31cb6209076e";
-        const CITY = "Rosario,AR";
+        const WEATHER_KEY = "9c73a28867a7fe53db5718310609a992";
 
         const FRASES = [
-            "Quien tiene un porqué para vivir puede soportar casi cualquier cómo.",
-            "La disciplina es el puente entre las metas y los logros.",
-            "Lo que no te mata, te hace más fuerte.",
-            "El caos es el orden que todavía no comprendemos.",
-            "La paz mental es la meta final del Auditor Lógico."
+            "La disciplina supera al talento.",
+            "El orden externo crea paz interna.",
+            "La acción cura el miedo.",
+            "Lo que no se mide, no se mejora.",
+            "La paz mental es la meta final.",
+            "Sé el arquitecto de tu propio destino.",
+            "Hazlo ahora. A veces 'luego' es 'nunca'."
         ];
 
-        // 1. CLIMA DINÁMICO (OpenWeatherMap)
-        async function updateWeather() {
-            try {
-                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${WEATHER_KEY}&units=metric&lang=es`);
-                const data = await res.json();
-                document.getElementById('clima-temp').innerText = `${Math.round(data.main.temp)}°C`;
-                const iconMap = {"01":"wb_sunny","02":"cloud","03":"cloud","04":"cloud","09":"grain","10":"grain","11":"thunderstorm","13":"ac_unit","50":"filter_drama"};
-                const iconCode = data.weather[0].icon.substring(0,2);
-                document.getElementById('clima-icon').innerText = iconMap[iconCode] || "cloud";
-            } catch (e) { console.error("Error clima"); }
-        }
-        setInterval(updateWeather, 900000); updateWeather();
-
-        // 2. FOTOS GITHUB (Carpeta /fotos)
+        // 1. FOTOS FULL SCREEN DESDE GITHUB
         let fotos = [];
         async function getPhotos() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/fotos`);
                 const data = await res.json();
                 fotos = data.filter(f => f.name.match(/\.(jpg|jpeg|png|gif)$/i)).map(f => f.download_url);
-                if(fotos.length > 0) updateFoto();
-            } catch (e) { console.error("Error fotos"); }
+                updateFoto();
+            } catch (e) { }
         }
         let fIdx = 0;
         function updateFoto() {
-            const img = document.getElementById('foto-display');
-            img.style.opacity = 0;
-            setTimeout(() => {
-                img.src = fotos[fIdx];
-                img.style.opacity = 1;
+            if(fotos.length > 0) {
+                const bg = document.getElementById('foto-fondo');
+                bg.style.backgroundImage = `url('${fotos[fIdx]}')`;
                 fIdx = (fIdx + 1) % fotos.length;
-            }, 1500);
+            }
         }
-        setInterval(updateFoto, 45000); getPhotos();
+        setInterval(updateFoto, 60000); getPhotos();
 
-        // 3. MÚSICA (Last.fm - Sincronizado con Alexa)
+        // 2. CLIMA COMPLETO
+        async function updateWeather() {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Rosario,AR&appid=${WEATHER_KEY}&units=metric&lang=es`);
+                const data = await res.json();
+                document.getElementById('clima-temp').innerText = `${Math.round(data.main.temp)}°C`;
+                document.getElementById('clima-detalles').innerHTML = `Rosario<br>Humedad: ${data.main.humidity}% | Viento: ${Math.round(data.wind.speed * 3.6)}km/h<br>${data.weather[0].description}`;
+                const iconMap = {"01":"wb_sunny","02":"cloud","03":"cloud","04":"cloud","09":"grain","10":"grain","11":"thunderstorm","13":"ac_unit","50":"filter_drama"};
+                document.getElementById('clima-icon').innerText = iconMap[data.weather[0].icon.substring(0,2)] || "cloud";
+            } catch (e) { }
+        }
+        setInterval(updateWeather, 900000); updateWeather();
+
+        // 3. MODO PLACA SPOTIFY (FULL SCREEN)
         async function checkMusic() {
             try {
                 const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${LASTFM_USER}&api_key=${LASTFM_KEY}&format=json&limit=1`);
@@ -142,17 +171,14 @@
                 const track = data.recenttracks.track[0];
                 const isPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
                 
-                const card = document.getElementById('spotify-card');
-                const foto = document.getElementById('foto-display');
+                const placa = document.getElementById('spotify-fullscreen');
                 if (isPlaying) {
-                    document.getElementById('album-art').src = track.image[3]['#text'] || '';
-                    document.getElementById('t-name').innerText = track.name;
-                    document.getElementById('t-artist').innerText = track.artist['#text'];
-                    card.classList.add('active');
-                    foto.style.opacity = "0.2";
+                    document.getElementById('placa-album').src = track.image[3]['#text'].replace('300x300','600x600');
+                    document.getElementById('placa-titulo').innerText = track.name;
+                    document.getElementById('placa-artista').innerText = track.artist['#text'];
+                    placa.classList.add('active');
                 } else {
-                    card.classList.remove('active');
-                    foto.style.opacity = "1";
+                    placa.classList.remove('active');
                 }
             } catch (e) { }
         }
@@ -160,7 +186,9 @@
 
         // 4. RELOJ Y FRASES
         setInterval(() => {
-            document.getElementById('reloj').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const d = new Date();
+            document.getElementById('reloj').innerText = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            document.getElementById('fecha').innerText = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
         }, 1000);
         let pIdx = 0;
         setInterval(() => {

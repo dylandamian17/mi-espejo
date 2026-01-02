@@ -2,138 +2,171 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Espejo Mágico - Dylan</title>
+    <title>Magic Mirror Dylan - Final Pro</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        /* ESTILOS BASE Y ROTACIÓN PARA EL MONITOR VERTICAL */
+        /* 1. FONDO NEGRO ABSOLUTO Y ROTACIÓN PARA MONITOR LG */
         body {
-            margin: 0; background: black; color: white; font-family: 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0; background: #000; color: white; font-family: 'Segoe UI', sans-serif;
             overflow: hidden; display: flex; justify-content: center; align-items: center;
             transform: rotate(90deg); transform-origin: center;
             width: 100vh; height: 100vw; position: absolute;
             top: 50%; left: 50%; margin-top: -50vw; margin-left: -50vh;
         }
-        .container {
-            width: 100%; height: 100%; display: flex; flex-direction: column;
-            justify-content: space-between; position: relative;
-        }
-        
-        /* CLIMA VISUAL ARRIBA A LA DERECHA */
-        #header { display: flex; justify-content: space-between; padding: 25px; z-index: 10; }
-        #reloj { font-size: 5.5rem; font-weight: 300; }
-        #clima-container { text-align: right; }
-        .weather-icon { font-size: 4rem; color: rgba(255,255,255,0.9); }
-        #clima-temp { font-size: 3rem; font-weight: bold; }
-        #clima-desc { font-size: 1.2rem; text-transform: capitalize; opacity: 0.7; }
 
-        /* FONDO DE GOOGLE PHOTOS */
-        #photo-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover; background-position: center; opacity: 0.5; /* Opacidad para que no tape el texto */
-            transition: opacity 1s ease-in-out;
+        .container { width: 100%; height: 100%; display: flex; flex-direction: column; background: #000; }
+
+        /* 2. BARRA SUPERIOR NEGRA (CLIMA Y HORA) */
+        .top-bar {
+            background: #000; height: 130px; display: flex; 
+            justify-content: space-between; align-items: center; padding: 0 60px;
+            border-bottom: 1px solid rgba(255,255,255,0.05); z-index: 100;
+        }
+        #reloj { font-size: 5rem; font-weight: 200; }
+        .clima-box { display: flex; align-items: center; gap: 20px; text-align: right; }
+        #clima-temp { font-size: 3.5rem; font-weight: bold; }
+        .clima-icon { font-size: 4.5rem; color: #FFD700; }
+
+        /* 3. FOTOS CENTRADAS (16:9) */
+        .main-content {
+            flex: 1; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; position: relative;
+        }
+        #foto-display {
+            max-width: 95%; max-height: 55vh; /* Centrado perfecto para 16:9 */
+            object-fit: contain; border-radius: 5px;
+            transition: opacity 1.5s ease-in-out; opacity: 0;
         }
 
-        /* TARJETA DE SPOTIFY (Se sobrepone a las fotos) */
+        /* 4. FRASES (Nietzsche / Motivacionales) */
+        #frase-box {
+            margin-top: 40px; font-size: 1.8rem; font-style: italic;
+            text-align: center; color: rgba(255,255,255,0.5); max-width: 80%;
+            line-height: 1.4; min-height: 3em;
+        }
+
+        /* 5. TARJETA SPOTIFY (LAST.FM) */
         #spotify-card {
-            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%);
-            display: flex; align-items: center; background: rgba(30,30,30,0.85);
-            padding: 25px; border-radius: 20px; width: 80%; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            visibility: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 20;
+            position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+            background: rgba(10,10,10,0.98); border: 1px solid #1DB954;
+            display: none; align-items: center; padding: 30px; border-radius: 25px;
+            width: 85%; z-index: 200; box-shadow: 0 0 50px rgba(0,0,0,1);
         }
-        #album-art { width: 160px; height: 160px; border-radius: 12px; margin-right: 25px; }
-        #track-name { font-size: 2.2rem; font-weight: bold; margin: 0 0 5px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #artist-name { font-size: 1.4rem; color: #1DB954; margin: 0; }
-        .spotify-visible { visibility: visible !important; opacity: 1 !important; }
-
-        #footer { text-align: center; padding: 20px; font-size: 1.3rem; opacity: 0.8; z-index: 10; }
+        #spotify-card.active { display: flex; }
+        #album-art { width: 170px; height: 170px; border-radius: 12px; margin-right: 30px; }
+        .track-title { font-size: 2.8rem; font-weight: bold; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-artist { font-size: 1.8rem; color: #1DB954; margin: 8px 0 0 0; }
     </style>
 </head>
 <body>
     <div class="container">
-        <div id="photo-container"></div>
-
-        <div id="header">
+        <div class="top-bar">
             <div id="reloj">00:00</div>
-            <div id="clima-container">
-                <span class="material-icons-round weather-icon" id="clima-icon">wb_sunny</span>
+            <div class="clima-box">
                 <div id="clima-temp">--°C</div>
-                <div id="clima-desc">Rosario</div>
+                <span class="material-icons-round clima-icon" id="clima-icon">wb_sunny</span>
             </div>
         </div>
 
-        <div id="spotify-card">
-            <img id="album-art" src="" alt="Album">
-            <div style="flex: 1; overflow: hidden;">
-                <p id="track-name">Cargando...</p>
-                <p id="artist-name">Artista</p>
+        <div class="main-content">
+            <img id="foto-display" src="" alt="">
+            <div id="frase-box">"Cargando pensamiento..."</div>
+            
+            <div id="spotify-card">
+                <img id="album-art" src="" alt="">
+                <div style="flex: 1; overflow: hidden;">
+                    <p class="track-title" id="t-name">Tema</p>
+                    <p class="track-artist" id="t-artist">Artista</p>
+                </div>
             </div>
         </div>
-
-        <div id="footer">Martes, 30 de diciembre</div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN (¡EDITÁ ESTO!) ---
-        const FOTO_URLS = [
-            // Pegá acá los links directos de tus fotos (ej: de Google Photos o Imgur)
-            // 'https://i.imgur.com/TuFoto1.jpg',
-            // 'https://i.imgur.com/TuFoto2.jpg'
+        // --- CONFIGURACIÓN INTEGRADA ---
+        const GITHUB_USER = "dylandamian17";
+        const REPO_NAME = "mi-espejo";
+        const LASTFM_USER = "Dylandd425";
+        const LASTFM_KEY = "9e7f2febccc739bfae8fda70db9eb9bd";
+        const WEATHER_KEY = "dc2af9ea2f8e8e1f857a31cb6209076e";
+        const CITY = "Rosario,AR";
+
+        const FRASES = [
+            "Quien tiene un porqué para vivir puede soportar casi cualquier cómo.",
+            "La disciplina es el puente entre las metas y los logros.",
+            "Lo que no te mata, te hace más fuerte.",
+            "El caos es el orden que todavía no comprendemos.",
+            "La paz mental es la meta final del Auditor Lógico."
         ];
-        // --- FIN CONFIGURACIÓN ---
 
-        // RELOJ Y FECHA
-        function updateClock() {
-            const now = new Date();
-            document.getElementById('reloj').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            document.getElementById('footer').innerText = now.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        // 1. CLIMA DINÁMICO (OpenWeatherMap)
+        async function updateWeather() {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${CITY}&appid=${WEATHER_KEY}&units=metric&lang=es`);
+                const data = await res.json();
+                document.getElementById('clima-temp').innerText = `${Math.round(data.main.temp)}°C`;
+                const iconMap = {"01":"wb_sunny","02":"cloud","03":"cloud","04":"cloud","09":"grain","10":"grain","11":"thunderstorm","13":"ac_unit","50":"filter_drama"};
+                const iconCode = data.weather[0].icon.substring(0,2);
+                document.getElementById('clima-icon').innerText = iconMap[iconCode] || "cloud";
+            } catch (e) { console.error("Error clima"); }
         }
-        setInterval(updateClock, 1000); updateClock();
+        setInterval(updateWeather, 900000); updateWeather();
 
-        // GOOGLE PHOTOS (Slideshow simple)
-        let photoIndex = 0;
-        function changePhoto() {
-            if (FOTO_URLS.length === 0) return;
-            const container = document.getElementById('photo-container');
-            container.style.backgroundImage = `url('${FOTO_URLS[photoIndex]}')`;
-            photoIndex = (photoIndex + 1) % FOTO_URLS.length;
+        // 2. FOTOS GITHUB (Carpeta /fotos)
+        let fotos = [];
+        async function getPhotos() {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents/fotos`);
+                const data = await res.json();
+                fotos = data.filter(f => f.name.match(/\.(jpg|jpeg|png|gif)$/i)).map(f => f.download_url);
+                if(fotos.length > 0) updateFoto();
+            } catch (e) { console.error("Error fotos"); }
         }
-        if (FOTO_URLS.length > 0) {
-            changePhoto();
-            setInterval(changePhoto, 30000); // Cambia cada 30 segundos
+        let fIdx = 0;
+        function updateFoto() {
+            const img = document.getElementById('foto-display');
+            img.style.opacity = 0;
+            setTimeout(() => {
+                img.src = fotos[fIdx];
+                img.style.opacity = 1;
+                fIdx = (fIdx + 1) % fotos.length;
+            }, 1500);
         }
+        setInterval(updateFoto, 45000); getPhotos();
 
-        // CLIMA (Simulado para demo - Después lo conectamos a la API)
-        function updateWeather() {
-            // Íconos: wb_sunny, cloud, grain (lluvia), thunderstorm
-            const iconos = ['wb_sunny', 'cloud', 'grain'];
-            const temp = Math.floor(Math.random() * (30 - 15) + 15);
-            document.getElementById('clima-temp').innerText = `${temp}°C`;
-            document.getElementById('clima-icon').innerText = iconos[Math.floor(Math.random() * iconos.length)];
+        // 3. MÚSICA (Last.fm - Sincronizado con Alexa)
+        async function checkMusic() {
+            try {
+                const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${LASTFM_USER}&api_key=${LASTFM_KEY}&format=json&limit=1`);
+                const data = await res.json();
+                const track = data.recenttracks.track[0];
+                const isPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
+                
+                const card = document.getElementById('spotify-card');
+                const foto = document.getElementById('foto-display');
+                if (isPlaying) {
+                    document.getElementById('album-art').src = track.image[3]['#text'] || '';
+                    document.getElementById('t-name').innerText = track.name;
+                    document.getElementById('t-artist').innerText = track.artist['#text'];
+                    card.classList.add('active');
+                    foto.style.opacity = "0.2";
+                } else {
+                    card.classList.remove('active');
+                    foto.style.opacity = "1";
+                }
+            } catch (e) { }
         }
-        updateWeather(); // Sacar esto cuando tengamos la API real
+        setInterval(checkMusic, 10000);
 
-        // LÓGICA DE SPOTIFY (La clave de tu pedido)
-        function showSpotify(track, artist, coverUrl) {
-            const card = document.getElementById('spotify-card');
-            const photoBg = document.getElementById('photo-container');
-            
-            document.getElementById('track-name').innerText = track;
-            document.getElementById('artist-name').innerText = artist;
-            document.getElementById('album-art').src = coverUrl;
-            
-            card.classList.add('spotify-visible');
-            photoBg.style.opacity = '0.2'; // Oscurece las fotos para que resalte Spotify
-        }
-
-        function hideSpotify() {
-            document.getElementById('spotify-card').classList.remove('spotify-visible');
-            document.getElementById('photo-container').style.opacity = '0.5'; // Vuelve la opacidad normal
-        }
-
-        // PRUEBA: Simula que Alexa pone música a los 5 segundos
-        setTimeout(() => {
-            showSpotify('Bohemian Rhapsody', 'Queen', 'https://i.scdn.co/image/ab67616d0000b273e8b066f70c206551210d902b');
-        }, 5000);
+        // 4. RELOJ Y FRASES
+        setInterval(() => {
+            document.getElementById('reloj').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+        let pIdx = 0;
+        setInterval(() => {
+            document.getElementById('frase-box').innerText = `"${FRASES[pIdx]}"`;
+            pIdx = (pIdx + 1) % FRASES.length;
+        }, 60000);
     </script>
 </body>
 </html>

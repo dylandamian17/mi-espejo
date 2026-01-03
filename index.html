@@ -2,62 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Magic Mirror Dylan - Ultimate Fixed</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Roboto+Mono:wght@300&display=swap" rel="stylesheet">
+    <title>Magic Mirror Dylan - Final Data</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&family=Roboto+Mono:wght@300;400&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ical.js/1.5.0/ical.min.js"></script>
     <style>
-        :root { --accent: #1DB954; --bg-glass: rgba(20, 20, 20, 0.85); }
+        :root { --accent: #1DB954; --bg-glass: rgba(15, 15, 15, 0.85); }
         body { margin: 0; background: #000; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
         
         /* ROTACIÓN (1080x1920 Vertical) */
         #rotator {
-            width: 100vh; height: 100vw; transform: rotate(90deg); transform-origin: center;
+            width: 100vh; height: 100vw; transform: rotate(-90deg); transform-origin: center;
             position: absolute; top: 50%; left: 50%; margin-left: -50vh; margin-top: -50vw;
             display: flex; flex-direction: column; background: #000;
         }
 
-        /* FOTOS VÍVIDAS */
         #foto-fondo {
             position: absolute; width: 100%; height: 100%;
             background-size: cover; background-position: center;
-            transition: opacity 1s ease-in-out; 
-            opacity: 0.9; /* Bien brillantes */
-            z-index: 1;
+            transition: opacity 1.5s ease-in-out; opacity: 0.9; z-index: 1;
         }
 
-        /* CAPA DE DATOS */
         .overlay {
             position: relative; z-index: 10; height: 100%; 
             display: flex; flex-direction: column; justify-content: space-between; padding: 35px 50px;
-            /* Degradado sutil para leer texto */
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 70%, rgba(0,0,0,0.8) 100%);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.8) 100%);
         }
 
-        /* HEADER: RELOJ Y CLIMA COMPLETO */
+        /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: flex-start; }
         
-        /* Reloj */
-        #reloj { font-family: 'Roboto Mono', monospace; font-size: 4rem; font-weight: 300; letter-spacing: -2px; line-height: 1; }
-        #fecha { font-size: 1.1rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 2px; margin-top: 5px; font-weight: 600; }
+        #reloj { font-family: 'Roboto Mono', monospace; font-size: 3.2rem; font-weight: 300; letter-spacing: -2px; line-height: 1; }
+        #fecha { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 2px; margin-top: 8px; font-weight: 500; }
         
-        /* Clima (Derecha) */
-        .clima-box { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
-        .clima-main { display: flex; align-items: center; gap: 10px; }
-        #clima-temp { font-family: 'Roboto Mono', monospace; font-size: 3.5rem; font-weight: 300; line-height: 1; }
-        .clima-icon { font-size: 3rem; color: #FFD700; }
+        /* CLIMA COMPLETO + CALENDARIO */
+        .right-box { text-align: right; max-width: 320px; }
         
-        #clima-desc { font-size: 1.2rem; font-weight: 600; text-transform: capitalize; margin-top: 5px; }
-        #clima-extra { font-size: 0.9rem; opacity: 0.8; margin-top: 3px; font-family: 'Roboto Mono', monospace; }
+        .clima-row { display: flex; align-items: center; justify-content: flex-end; gap: 15px; }
+        #clima-temp { font-family: 'Roboto Mono', monospace; font-size: 2.8rem; font-weight: 300; line-height: 1; }
+        #clima-icon { font-size: 2.5rem; color: #FFD700; }
+        
+        /* Datos técnicos (Humedad/Viento) */
+        #clima-data { 
+            font-family: 'Roboto Mono', monospace; font-size: 0.85rem; opacity: 0.9; 
+            margin-top: 8px; letter-spacing: 0.5px; color: #ddd; 
+        }
+        #clima-desc { font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; margin-top: 4px; margin-bottom: 20px; }
+
+        /* CALENDARIO */
+        #cal-events { font-size: 0.85rem; line-height: 1.6; opacity: 0.95; border-top: 1px solid rgba(255,255,255,0.3); padding-top: 15px; }
+        .event-item { margin-bottom: 8px; font-weight: 400; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .event-time { color: var(--accent); font-weight: bold; margin-right: 6px; font-size: 0.75rem; font-family: 'Roboto Mono', monospace; }
 
         /* FRASES */
         #frase-box { 
             text-align: center; font-size: 1.5rem; font-weight: 400; 
-            opacity: 0.9; max-width: 80%; align-self: center; 
-            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
-            transition: opacity 0.5s ease; margin-bottom: 20px;
+            opacity: 0.95; max-width: 80%; align-self: center; 
+            text-shadow: 0 2px 5px rgba(0,0,0,1);
+            transition: opacity 0.5s ease;
         }
 
-        /* TARJETA SPOTIFY "VINYL" */
+        /* SPOTIFY VINYL */
         #spotify-container {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             z-index: 100; display: none; align-items: center; justify-content: center; width: 100%;
@@ -65,15 +70,14 @@
         #spotify-container.active { display: flex; }
 
         .music-card {
-            background: var(--bg-glass); backdrop-filter: blur(25px);
-            padding: 35px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center; gap: 35px; 
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            background: var(--bg-glass); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            padding: 30px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.15);
+            display: flex; align-items: center; gap: 30px; 
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8);
         }
-
-        .vinyl-wrapper { position: relative; width: 200px; height: 200px; }
+        .vinyl-wrapper { position: relative; width: 190px; height: 190px; }
         .vinyl {
-            position: absolute; top: 5px; left: 35px; width: 190px; height: 190px;
+            position: absolute; top: 5px; left: 30px; width: 180px; height: 180px;
             background: radial-gradient(circle, #222 30%, #111 100%);
             border-radius: 50%; border: 2px solid #333;
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
@@ -81,15 +85,15 @@
         }
         .vinyl::after {
             content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 70px; height: 70px; background: var(--bg-glass); border-radius: 50%;
+            width: 65px; height: 65px; background: var(--bg-glass); border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.2);
         }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        .album-art { width: 200px; height: 200px; border-radius: 12px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 2; }
-        .track-info { display: flex; flex-direction: column; max-width: 280px; }
-        #t-name { font-size: 1.8rem; font-weight: 700; margin: 0; line-height: 1.2; }
-        #t-artist { font-size: 1.3rem; color: var(--accent); margin-top: 8px; opacity: 0.9; }
+        .album-art { width: 190px; height: 190px; border-radius: 12px; box-shadow: 10px 0 30px rgba(0,0,0,0.5); z-index: 2; }
+        .track-info { display: flex; flex-direction: column; max-width: 260px; }
+        #t-name { font-size: 1.7rem; font-weight: 700; margin: 0; line-height: 1.2; }
+        #t-artist { font-size: 1.2rem; color: var(--accent); margin-top: 8px; opacity: 0.9; font-weight: 400; }
     </style>
 </head>
 <body>
@@ -98,14 +102,8 @@
 
         <div id="spotify-container">
             <div class="music-card">
-                <div class="vinyl-wrapper">
-                    <div class="vinyl"></div>
-                    <img id="album-art" class="album-art" src="" alt="">
-                </div>
-                <div class="track-info">
-                    <p id="t-name">Song</p>
-                    <p id="t-artist">Artist</p>
-                </div>
+                <div class="vinyl-wrapper"><div class="vinyl"></div><img id="album-art" class="album-art" src="" alt=""></div>
+                <div class="track-info"><p id="t-name"></p><p id="t-artist"></p></div>
             </div>
         </div>
 
@@ -115,13 +113,14 @@
                     <div id="reloj">00:00</div>
                     <div id="fecha">Cargando...</div>
                 </div>
-                <div class="clima-box">
-                    <div class="clima-main">
+                <div class="right-box">
+                    <div class="clima-row">
                         <div id="clima-temp">--°C</div>
-                        <span class="material-icons-round clima-icon" id="clima-icon">wb_sunny</span>
+                        <span class="material-icons-round" id="clima-icon">wb_sunny</span>
                     </div>
-                    <div id="clima-desc">--</div>
-                    <div id="clima-extra">Humedad: --% | Viento: -- km/h</div>
+                    <div id="clima-data">H: --% | V: --km/h</div>
+                    <div id="clima-desc">Rosario</div>
+                    <div id="cal-events">Cargando eventos...</div>
                 </div>
             </div>
             <div id="frase-box"></div>
@@ -134,77 +133,27 @@
         const LASTFM_USER = "Dylandd425";
         const LASTFM_KEY = "9e7f2febccc739bfae8fda70db9eb9bd";
         const WEATHER_KEY = "9c73a28867a7fe53db5718310609a992";
+        const CAL_URL = "https://corsproxy.io/?https://calendar.google.com/calendar/ical/dylan.damian17%40gmail.com/private-b5a2af32aeef93ac1c646922faf69b51/basic.ics";
 
-        // --- MEGAPACK DE FRASES ---
+        // MEGAPACK DE FRASES
         const FRASES = [
-            "La disciplina tarde o temprano vencerá a la inteligencia.",
-            "No te detengas cuando estés cansado, detente cuando hayas terminado.",
-            "Tu única competencia es quien eras ayer.",
-            "El dolor de la disciplina es temporal; el dolor del arrepentimiento es para siempre.",
-            "La motivación te pone en marcha, el hábito te mantiene.",
-            "Hazlo ahora. A veces 'luego' se convierte en 'nunca'.",
-            "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
-            "No busques excusas, busca resultados.",
-            "Sé más fuerte que tus excusas.",
-            "La calidad de tus pensamientos determina la calidad de tu vida.",
-            "No es lo que te pasa, es cómo reaccionas a lo que te pasa.",
-            "Domina tu mente o ella te dominará a ti.",
-            "La incomodidad es el precio del crecimiento.",
-            "Si quieres algo que nunca has tenido, debes hacer algo que nunca has hecho.",
-            "El primer paso no te lleva a donde quieres ir, pero te saca de donde estás.",
-            "La constancia es la clave del éxito.",
-            "No esperes el momento perfecto, toma el momento y hazlo perfecto.",
-            "El miedo es una reacción, el coraje es una decisión.",
-            "Trabaja en silencio, deja que tu éxito haga el ruido.",
-            "Lo que no se mide, no se puede mejorar.",
-            "La acción cura el miedo y la procrastinación.",
-            "La paz mental es la verdadera meta.",
-            "Tu tiempo es limitado, no lo malgastes viviendo la vida de otro.",
-            "El orden externo refleja el orden interno.",
-            "Sé el arquitecto de tu propio destino.",
-            "Las oportunidades no pasan, las creas.",
-            "Cree que puedes y ya estás a mitad de camino.",
-            "El fracaso es solo la oportunidad de comenzar de nuevo con más inteligencia.",
-            "Acepta lo que no puedes cambiar, ten el coraje de cambiar lo que sí puedes.",
-            "La excelencia no es un acto, es un hábito.",
-            "No cuentes los días, haz que los días cuenten.",
-            "La verdadera libertad es la autodisciplina.",
-            "Si no te desafía, no te cambia.",
-            "El momento para actuar es ahora.",
-            "Mantén la calma y sigue adelante.",
-            "La paciencia es amarga, pero su fruto es dulce.",
-            "Invierte en ti mismo, es la mejor inversión.",
-            "La suerte favorece a la mente preparada.",
-            "El conocimiento es poder, pero la acción es la clave.",
-            "No te compares con nadie, mantén la cabeza alta.",
-            "La vida es 10% lo que te sucede y 90% cómo reaccionas ante ello.",
-            "Si no puedes hacer grandes cosas, haz cosas pequeñas de una manera grandiosa.",
-            "El éxito no es definitivo, el fracaso no es fatal: es el coraje para continuar lo que cuenta.",
-            "La mejor venganza es un éxito masivo.",
-            "No permitas que el ruido de las opiniones ajenas silencie tu voz interior.",
-            "La única forma de hacer un gran trabajo es amar lo que haces.",
-            "La vida se encoge o se expande en proporción a tu coraje.",
-            "No dejes que el ayer ocupe demasiado del hoy.",
-            "El hombre que mueve una montaña comienza cargando pequeñas piedras.",
-            "La mejor manera de predecir el futuro es crearlo.",
-            "La felicidad no es algo hecho. Proviene de tus propias acciones.",
-            "La mente es todo. En lo que piensas te conviertes.",
-            "Cáete siete veces, levántate ocho.",
-            "Todo lo que siempre has querido está al otro lado del miedo.",
-            "El momento es ahora.",
-            "Enfócate en la solución, no en el problema.",
-            "Actúa como si lo que haces marca la diferencia. Lo hace.",
-            "El único límite para nuestra realización del mañana serán nuestras dudas de hoy.",
-            "No esperes. El tiempo nunca será el 'justo'.",
-            "Puedes si crees que puedes.",
-            "El secreto para salir adelante es empezar.",
-            "La mejor preparación para mañana es hacer lo mejor hoy.",
-            "Cree en ti mismo y en todo lo que eres.",
-            "Mantén tu rostro siempre hacia la luz del sol y las sombras caerán detrás de ti.",
-            "El optimismo perpetuo es un multiplicador de fuerza.",
-            "La disciplina es el puente entre metas y logros.",
-            "Menos charla, más acción.",
-            "Resultados, no excusas."
+            "La disciplina tarde o temprano vencerá a la inteligencia.", "No te detengas cuando estés cansado, detente cuando hayas terminado.", "Tu única competencia es quien eras ayer.",
+            "El dolor de la disciplina es temporal; el dolor del arrepentimiento es para siempre.", "La motivación te pone en marcha, el hábito te mantiene.", "Hazlo ahora. A veces 'luego' se convierte en 'nunca'.",
+            "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", "No busques excusas, busca resultados.", "Sé más fuerte que tus excusas.", "La calidad de tus pensamientos determina la calidad de tu vida.",
+            "No es lo que te pasa, es cómo reaccionas a lo que te pasa.", "Domina tu mente o ella te dominará a ti.", "La incomodidad es el precio del crecimiento.", "Si quieres algo que nunca has tenido, debes hacer algo que nunca has hecho.",
+            "El primer paso no te lleva a donde quieres ir, pero te saca de donde estás.", "La constancia es la clave del éxito.", "No esperes el momento perfecto, toma el momento y hazlo perfecto.",
+            "El miedo es una reacción, el coraje es una decisión.", "Trabaja en silencio, deja que tu éxito haga el ruido.", "Lo que no se mide, no se puede mejorar.", "La acción cura el miedo y la procrastinación.",
+            "La paz mental es la verdadera meta.", "Tu tiempo es limitado, no lo malgastes viviendo la vida de otro.", "El orden externo refleja el orden interno.", "Sé el arquitecto de tu propio destino.",
+            "Las oportunidades no pasan, las creas.", "Cree que puedes y ya estás a mitad de camino.", "El fracaso es solo la oportunidad de comenzar de nuevo con más inteligencia.", "Acepta lo que no puedes cambiar, ten el coraje de cambiar lo que sí puedes.",
+            "La excelencia no es un acto, es un hábito.", "No cuentes los días, haz que los días cuenten.", "La verdadera libertad es la autodisciplina.", "Si no te desafía, no te cambia.", "El momento para actuar es ahora.",
+            "Mantén la calma y sigue adelante.", "La paciencia es amarga, pero su fruto es dulce.", "Invierte en ti mismo, es la mejor inversión.", "La suerte favorece a la mente preparada.",
+            "El conocimiento es poder, pero la acción es la clave.", "No te compares con nadie, mantén la cabeza alta.", "La vida es 10% lo que te sucede y 90% cómo reaccionas ante ello.", "Si no puedes hacer grandes cosas, haz cosas pequeñas de una manera grandiosa.",
+            "El éxito no es definitivo, el fracaso no es fatal.", "La mejor venganza es un éxito masivo.", "No permitas que el ruido de las opiniones ajenas silencie tu voz interior.", "La única forma de hacer un gran trabajo es amar lo que haces.",
+            "La vida se encoge o se expande en proporción a tu coraje.", "No dejes que el ayer ocupe demasiado del hoy.", "El hombre que mueve una montaña comienza cargando pequeñas piedras.", "La mejor manera de predecir el futuro es crearlo.",
+            "La felicidad no es algo hecho. Proviene de tus propias acciones.", "La mente es todo. En lo que piensas te conviertes.", "Cáete siete veces, levántate ocho.", "Todo lo que siempre has querido está al otro lado del miedo.",
+            "El momento es ahora.", "Enfócate en la solución, no en el problema.", "Actúa como si lo que haces marca la diferencia. Lo hace.", "El único límite para nuestra realización del mañana serán nuestras dudas de hoy.",
+            "No esperes. El tiempo nunca será el 'justo'.", "Puedes si crees que puedes.", "El secreto para salir adelante es empezar.", "La mejor preparación para mañana es hacer lo mejor hoy.", "Cree en ti mismo y en todo lo que eres.",
+            "Mantén tu rostro siempre hacia la luz del sol.", "El optimismo perpetuo es un multiplicador de fuerza.", "La disciplina es el puente entre metas y logros.", "Menos charla, más acción.", "Resultados, no excusas.", "La duda mata más sueños que el fracaso."
         ];
 
         // 1. FOTOS VÍVIDAS
@@ -226,65 +175,77 @@
         }
         setInterval(updateFoto, 45000); getPhotos();
 
-        // 2. CLIMA COMPLETO
-        async function updateWeather() {
+        // 2. CALENDARIO
+        async function updateCalendar() {
             try {
-                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Rosario,AR&appid=${WEATHER_KEY}&units=metric&lang=es`);
-                const data = await res.json();
-                
-                // Temperatura y Icono
-                document.getElementById('clima-temp').innerText = `${Math.round(data.main.temp)}°C`;
-                const iconMap = {"01":"wb_sunny","02":"cloud","03":"cloud","04":"cloud","09":"grain","10":"grain","11":"thunderstorm","13":"ac_unit","50":"filter_drama"};
-                document.getElementById('clima-icon').innerText = iconMap[data.weather[0].icon.substring(0,2)] || "cloud";
-                
-                // Detalles (Restaurados)
-                document.getElementById('clima-desc').innerText = data.weather[0].description;
-                document.getElementById('clima-extra').innerText = `Humedad: ${data.main.humidity}% | Viento: ${Math.round(data.wind.speed * 3.6)} km/h`;
-            } catch (e) { }
-        }
-        setInterval(updateWeather, 900000); updateWeather();
+                const res = await fetch(CAL_URL);
+                const data = await res.text();
+                const jcalData = ICAL.parse(data);
+                const comp = new ICAL.Component(jcalData);
+                const vevents = comp.getAllSubcomponents('vevent');
+                const now = new Date();
+                let events = vevents.map(ve => {
+                    const event = new ICAL.Event(ve);
+                    let startDate = event.startDate.toJSDate();
+                    if (event.startDate.isUTC) startDate = new Date(startDate.getTime() - (3 * 60 * 60 * 1000));
+                    return { title: event.summary, start: startDate };
+                }).filter(e => e.start >= now).sort((a, b) => a.start - b.start).slice(0, 3);
 
-        // 3. MÚSICA (Vinyl Style)
+                const container = document.getElementById('cal-events');
+                if(events.length === 0) container.innerHTML = "Sin eventos próximos";
+                else container.innerHTML = events.map(e => `<div class="event-item"><span class="event-time">${e.start.toLocaleDateString('es-AR', {day:'numeric', month:'short'})} ${String(e.start.getHours()).padStart(2, '0')}:${String(e.start.getMinutes()).padStart(2, '0')}</span>${e.title}</div>`).join('');
+            } catch (e) { console.error(e); }
+        }
+        setInterval(updateCalendar, 3600000); updateCalendar();
+
+        // 3. MÚSICA
         async function checkMusic() {
             try {
                 const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${LASTFM_USER}&api_key=${LASTFM_KEY}&format=json&limit=1`);
                 const data = await res.json();
                 const track = data.recenttracks.track[0];
                 const isPlaying = track['@attr'] && track['@attr'].nowplaying === 'true';
-                
                 const container = document.getElementById('spotify-container');
                 const fotoFondo = document.getElementById('foto-fondo');
-                
                 if (isPlaying) {
                     document.getElementById('album-art').src = track.image[3]['#text'].replace('300x300','600x600');
                     document.getElementById('t-name').innerText = track.name;
                     document.getElementById('t-artist').innerText = track.artist['#text'];
-                    container.classList.add('active');
-                    fotoFondo.style.opacity = "0.3"; // Oscurece
+                    container.classList.add('active'); fotoFondo.style.opacity = "0.2";
                 } else {
-                    container.classList.remove('active');
-                    fotoFondo.style.opacity = "0.9"; // Brilla
+                    container.classList.remove('active'); fotoFondo.style.opacity = "0.9";
                 }
             } catch (e) { }
         }
         setInterval(checkMusic, 5000);
 
-        // 4. RELOJ, FECHA Y FRASES
+        // 4. CLIMA DETALLADO
+        async function updateWeather() {
+            try {
+                const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Rosario,AR&appid=${WEATHER_KEY}&units=metric&lang=es`);
+                const data = await res.json();
+                document.getElementById('clima-temp').innerText = `${Math.round(data.main.temp)}°C`;
+                // MAPEO DE ICONOS
+                const iconMap = {"01":"wb_sunny","02":"cloud","03":"cloud","04":"cloud","09":"grain","10":"grain","11":"thunderstorm","13":"ac_unit","50":"filter_drama"};
+                document.getElementById('clima-icon').innerText = iconMap[data.weather[0].icon.substring(0,2)] || "cloud";
+                // DATOS DETALLADOS
+                document.getElementById('clima-data').innerText = `H: ${data.main.humidity}% | V: ${Math.round(data.wind.speed * 3.6)}km/h`;
+                document.getElementById('clima-desc').innerText = data.weather[0].description;
+            } catch (e) { }
+        }
+        setInterval(updateWeather, 900000); updateWeather();
+
+        // 5. RELOJ Y FRASES
         setInterval(() => {
             const d = new Date();
             document.getElementById('reloj').innerText = d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             document.getElementById('fecha').innerText = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'short' });
         }, 1000);
-
         let pIdx = 0;
         function updateFrase() {
-            const fraseBox = document.getElementById('frase-box');
-            fraseBox.style.opacity = 0;
-            setTimeout(() => {
-                fraseBox.innerText = `"${FRASES[pIdx]}"`;
-                fraseBox.style.opacity = 0.9;
-                pIdx = (pIdx + 1) % FRASES.length;
-            }, 500);
+            const f = document.getElementById('frase-box');
+            f.style.opacity = 0;
+            setTimeout(() => { f.innerText = `"${FRASES[pIdx]}"`; f.style.opacity = 0.95; pIdx = (pIdx + 1) % FRASES.length; }, 500);
         }
         setInterval(updateFrase, 15000); updateFrase();
     </script>

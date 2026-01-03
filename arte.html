@@ -4,21 +4,30 @@
     <meta charset="UTF-8">
     <title>Magic Mirror - MODO ARTE</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; }
+        body { 
+            margin: 0; 
+            background: #000; 
+            overflow: hidden; 
+            cursor: none; /* Oculta el cursor del mouse en el onn. */
+        }
         
+        /* ESTRUCTURA ROTADA PARA MONITOR VERTICAL */
         #rotator {
             width: 100vh; height: 100vw; transform: rotate(90deg); transform-origin: center;
             position: absolute; top: 50%; left: 50%; margin-left: -50vh; margin-top: -50vw;
             background: #000;
         }
 
-        /* CAPAS DE FONDO (DOUBLE BUFFER) */
+        /* SISTEMA DE CAPAS PARA CAMBIO FLUIDO (SIN NEGRO) */
         .layer {
             position: absolute; width: 100%; height: 100%;
-            background-size: cover; background-position: center;
-            transition: opacity 1.5s ease-in-out; opacity: 0;
+            background-size: cover; 
+            background-position: center;
+            background-color: #000;
+            transition: opacity 1.5s ease-in-out; 
+            opacity: 0;
         }
-        .active { opacity: 1 !important; } /* Arte al 100% de brillo */
+        .active { opacity: 1 !important; } /* Brillo 100% para arte */
     </style>
 </head>
 <body>
@@ -28,26 +37,27 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN
-        const CONF = { githubUser: "dylandamian17", repo: "mi-espejo" };
+        // CONFIGURACIÓN DE GITHUB
+        const CONF = { 
+            githubUser: "dylandamian17", 
+            repo: "mi-espejo" 
+        };
         
         let obras = [];
         let artIdx = 0;
         let currentLayer = 1;
 
-        // --- SISTEMA DE CONTROL REMOTO (MANUAL) ---
+        // --- SISTEMA DE CONTROL REMOTO ---
         document.addEventListener('keydown', (e) => {
-            // VOLVER A ESPEJO (Arriba o Enter)
-            if (e.key === 'ArrowUp' || e.key === 'Enter') {
+            // VOLVER A ESPEJO (Flecha Arriba)
+            if (e.key === 'ArrowUp') {
                 window.location.href = 'index.html';
             }
-            
-            // SIGUIENTE OBRA (Derecha)
+            // SIGUIENTE OBRA (Flecha Derecha)
             if (e.key === 'ArrowRight') {
                 changeArt(1);
             }
-            
-            // OBRA ANTERIOR (Izquierda)
+            // OBRA ANTERIOR (Flecha Izquierda)
             if (e.key === 'ArrowLeft') {
                 changeArt(-1);
             }
@@ -55,17 +65,26 @@
 
         async function initArt() {
             try {
-                // Lee la carpeta "arte" (creala en GitHub si no existe)
+                // Lee la carpeta "arte" de tu repositorio
                 const res = await fetch(`https://api.github.com/repos/${CONF.githubUser}/${CONF.repo}/contents/arte`);
                 const data = await res.json();
-                obras = data.filter(f => f.name.match(/\.(jpg|jpeg|png|gif)$/i)).map(f => f.download_url);
-                if(obras.length > 0) showCurrentArt();
-            } catch (e) { console.error("Error: Asegurate de tener la carpeta /arte en GitHub"); }
+                
+                // Filtra solo archivos de imagen
+                obras = data.filter(f => f.name.match(/\.(jpg|jpeg|png|gif|webp)$/i)).map(f => f.download_url);
+                
+                if(obras.length > 0) {
+                    showCurrentArt();
+                } else {
+                    console.error("No se encontraron imágenes en la carpeta /arte");
+                }
+            } catch (e) {
+                console.error("Error cargando la galería de arte:", e);
+            }
         }
 
         function changeArt(direction) {
             if (obras.length === 0) return;
-            // Cálculo circular para que no de error al llegar al final
+            // Cálculo circular de índice
             artIdx = (artIdx + direction + obras.length) % obras.length;
             showCurrentArt();
         }
@@ -74,17 +93,19 @@
             const nextLayer = currentLayer === 1 ? 2 : 1;
             const imgUrl = obras[artIdx];
             
-            // PRECARGA (Anti-Negro)
+            // PROXY TURBO: Redimensiona a 1080x1920 y comprime a WebP al vuelo
+            const turboUrl = `https://wsrv.nl/?url=${encodeURIComponent(imgUrl)}&w=1080&h=1920&fit=cover&output=webp`;
+            
             const tempImg = new Image();
-            tempImg.src = imgUrl;
+            tempImg.src = turboUrl;
             
             tempImg.onload = () => {
                 const nextEl = document.getElementById(`layer${nextLayer}`);
                 const currEl = document.getElementById(`layer${currentLayer}`);
                 
-                nextEl.style.backgroundImage = `url('${imgUrl}')`;
+                nextEl.style.backgroundImage = `url('${turboUrl}')`;
                 
-                // Cross-fade
+                // Efecto de fundido cruzado
                 nextEl.classList.add('active');
                 currEl.classList.remove('active');
                 
@@ -92,6 +113,7 @@
             };
         }
 
+        // INICIALIZACIÓN
         initArt();
     </script>
 </body>

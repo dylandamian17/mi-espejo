@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Magic Mirror - MODO ARTE</title>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; }
+        
+        #rotator {
+            width: 100vh; height: 100vw; transform: rotate(90deg); transform-origin: center;
+            position: absolute; top: 50%; left: 50%; margin-left: -50vh; margin-top: -50vw;
+            background: #000;
+        }
+
+        /* CAPAS DE FONDO (DOUBLE BUFFER) */
+        .layer {
+            position: absolute; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+            transition: opacity 1.5s ease-in-out; opacity: 0;
+        }
+        .active { opacity: 1 !important; } /* Arte al 100% de brillo */
+    </style>
+</head>
+<body>
+    <div id="rotator">
+        <div id="layer1" class="layer active"></div>
+        <div id="layer2" class="layer"></div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN
+        const CONF = { githubUser: "dylandamian17", repo: "mi-espejo" };
+        
+        let obras = [];
+        let artIdx = 0;
+        let currentLayer = 1;
+
+        // --- SISTEMA DE CONTROL REMOTO (MANUAL) ---
+        document.addEventListener('keydown', (e) => {
+            // VOLVER A ESPEJO (Arriba o Enter)
+            if (e.key === 'ArrowUp' || e.key === 'Enter') {
+                window.location.href = 'index.html';
+            }
+            
+            // SIGUIENTE OBRA (Derecha)
+            if (e.key === 'ArrowRight') {
+                changeArt(1);
+            }
+            
+            // OBRA ANTERIOR (Izquierda)
+            if (e.key === 'ArrowLeft') {
+                changeArt(-1);
+            }
+        });
+
+        async function initArt() {
+            try {
+                // Lee la carpeta "arte" (creala en GitHub si no existe)
+                const res = await fetch(`https://api.github.com/repos/${CONF.githubUser}/${CONF.repo}/contents/arte`);
+                const data = await res.json();
+                obras = data.filter(f => f.name.match(/\.(jpg|jpeg|png|gif)$/i)).map(f => f.download_url);
+                if(obras.length > 0) showCurrentArt();
+            } catch (e) { console.error("Error: Asegurate de tener la carpeta /arte en GitHub"); }
+        }
+
+        function changeArt(direction) {
+            if (obras.length === 0) return;
+            // Cálculo circular para que no de error al llegar al final
+            artIdx = (artIdx + direction + obras.length) % obras.length;
+            showCurrentArt();
+        }
+
+        function showCurrentArt() {
+            const nextLayer = currentLayer === 1 ? 2 : 1;
+            const imgUrl = obras[artIdx];
+            
+            // PRECARGA (Anti-Negro)
+            const tempImg = new Image();
+            tempImg.src = imgUrl;
+            
+            tempImg.onload = () => {
+                const nextEl = document.getElementById(`layer${nextLayer}`);
+                const currEl = document.getElementById(`layer${currentLayer}`);
+                
+                nextEl.style.backgroundImage = `url('${imgUrl}')`;
+                
+                // Cross-fade
+                nextEl.classList.add('active');
+                currEl.classList.remove('active');
+                
+                currentLayer = nextLayer;
+            };
+        }
+
+        initArt();
+    </script>
+</body>
+</html>

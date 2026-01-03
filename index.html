@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Magic Mirror Dylan - FINAL ULTIMATE</title>
+    <title>Magic Mirror Dylan - REAL DATA</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Roboto+Mono:wght@300;400;500&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
@@ -15,13 +15,25 @@
             display: flex; flex-direction: column; background: #000;
         }
 
-        /* FONDO (TURBO + DOUBLE BUFFER) */
+        /* PANTALLA DE CARGA */
+        #loader {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 100;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Roboto Mono', monospace; font-size: 1.5rem; letter-spacing: 3px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* CAPAS DE FONDO */
         .layer {
             position: absolute; width: 100%; height: 100%;
             background-size: cover; background-position: center;
+            background-color: #000;
             transition: opacity 2s ease-in-out; opacity: 0; z-index: 1;
         }
         .active { opacity: 0.9 !important; z-index: 2; }
+        .instant { transition: none !important; opacity: 0.9 !important; z-index: 2; }
 
         /* INTERFAZ */
         .overlay {
@@ -32,40 +44,33 @@
 
         .shift-protect { transition: transform 1s ease-in-out; will-change: transform; }
 
-        /* --- HEADER SUPERIOR --- */
+        /* HEADER */
         .header { display: flex; justify-content: space-between; align-items: flex-start; }
         
-        /* BLOQUE IZQUIERDO: RELOJ */
         .time-col { display: flex; flex-direction: column; }
         #reloj { font-family: 'Roboto Mono', monospace; font-size: 4.5rem; font-weight: 400; line-height: 0.9; letter-spacing: -2px; text-shadow: 0 4px 20px rgba(0,0,0,0.8); }
         #am-pm { font-size: 1.5rem; font-weight: 300; margin-top: 5px; opacity: 0.8; }
         #fecha { font-size: 1.1rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 2px; margin-top: 10px; font-weight: 600; text-shadow: 0 2px 10px rgba(0,0,0,1); color: var(--text-dim); }
 
-        /* BLOQUE DERECHO: CLIMA + CALENDARIO */
         .info-col { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
-        
-        /* CLIMA */
         .clima-row { display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
         #clima-temp { font-family: 'Roboto Mono', monospace; font-size: 3.5rem; font-weight: 300; text-shadow: 0 4px 15px rgba(0,0,0,0.8); }
         #clima-icon { width: 50px; height: 50px; }
-        
         .clima-details { font-size: 0.9rem; font-weight: 500; opacity: 0.9; text-shadow: 0 2px 5px rgba(0,0,0,1); margin-bottom: 2px; }
         #clima-desc { font-size: 0.85rem; text-transform: uppercase; opacity: 0.7; letter-spacing: 1px; margin-bottom: 20px; }
 
-        /* CALENDARIO */
         #calendar-box { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
         .event-item { font-size: 0.85rem; text-shadow: 0 2px 4px rgba(0,0,0,1); max-width: 300px; line-height: 1.3; }
         .event-date { color: var(--event-color); font-weight: 700; margin-right: 5px; }
         .event-title { color: white; font-weight: 400; }
 
-        /* --- FRASES --- */
         #frase-box { 
             text-align: center; font-size: 1.5rem; font-weight: 400; font-style: italic; line-height: 1.5;
             max-width: 90%; align-self: center; opacity: 0; 
             text-shadow: 0 2px 20px #000; transition: opacity 1s ease;
         }
 
-        /* --- SPOTIFY (VINYL) --- */
+        /* SPOTIFY */
         #spotify-card { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; align-items: center; justify-content: center; width: 100%; z-index: 50; }
         #spotify-card.visible { display: flex; }
         .glass-panel { background: var(--glass); backdrop-filter: blur(30px); padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 40px; box-shadow: 0 40px 100px rgba(0,0,0,0.9); }
@@ -77,12 +82,12 @@
         .track-meta { display: flex; flex-direction: column; max-width: 300px; }
         #t-name { font-size: 2rem; font-weight: 700; margin: 0; line-height: 1.1; }
         #t-artist { font-size: 1.4rem; color: var(--accent); margin-top: 10px; font-weight: 400; opacity: 0.9; }
-
     </style>
 </head>
 <body>
     <div id="rotator">
-        <div id="layer1" class="layer active"></div>
+        <div id="loader">INICIANDO SISTEMA...</div>
+        <div id="layer1" class="layer"></div>
         <div id="layer2" class="layer"></div>
         <div id="spotify-card">
             <div class="glass-panel">
@@ -93,17 +98,17 @@
         <div class="overlay">
             <div class="header shift-protect">
                 <div class="time-col">
-                    <div id="reloj">00:00</div>
-                    <div id="am-pm">p.m.</div>
-                    <div id="fecha">DOMINGO, 4 ENE</div>
+                    <div id="reloj">--:--</div>
+                    <div id="am-pm">--</div>
+                    <div id="fecha">---</div>
                 </div>
                 <div class="info-col">
                     <div class="clima-row">
                         <div id="clima-temp">--°C</div>
                         <img id="clima-icon" src="" alt="clima">
                     </div>
-                    <div class="clima-details" id="clima-stats">H: --% | V: --km/h</div>
-                    <div id="clima-desc">CARGANDO...</div>
+                    <div class="clima-details" id="clima-stats">--</div>
+                    <div id="clima-desc">--</div>
                     <div id="calendar-box"></div>
                 </div>
             </div>
@@ -112,116 +117,58 @@
     </div>
 
     <script>
-        const CONF = { githubUser: "dylandamian17", repo: "mi-espejo", lastfmUser: "Dylandd425", lastfmKey: "9e7f2febccc739bfae8fda70db9eb9bd", weatherKey: "9c73a28867a7fe53db5718310609a992" };
+        // --- CONFIGURACIÓN ---
+        const CONF = { 
+            githubUser: "dylandamian17", 
+            repo: "mi-espejo", 
+            lastfmUser: "Dylandd425", 
+            lastfmKey: "9e7f2febccc739bfae8fda70db9eb9bd", 
+            weatherKey: "9c73a28867a7fe53db5718310609a992",
+            // PEGÁ TU LINK DE CALENDARIO DE GOOGLE (ICAL SECRET ADDRESS) ACÁ ABAJO ENTRE LAS COMILLAS:
+            calendarUrl: "https://calendar.google.com/calendar/ical/dylan.damian17%40gmail.com/private-b5a2af32aeef93ac1c646922faf69b51/basic.ics" 
+        };
 
-        const AGENDA = [
-            { fecha: "4 ENE 15:00", evento: "Prueba de función" },
-            { fecha: "4 ENE 22:00", evento: "Tengo que salir ford a arreglar" },
-            { fecha: "5 ENE 08:00", evento: "Ford Argentina Service - Booking" }
-        ];
-
-        // MEGAPACK DE FRASES RESTAURADO (+60)
         const FRASES = [
-            "La disciplina tarde o temprano vencerá a la inteligencia.",
-            "No te detengas cuando estés cansado, detente cuando hayas terminado.",
-            "Tu única competencia es quien eras ayer.",
-            "El dolor de la disciplina es temporal; el dolor del arrepentimiento es para siempre.",
-            "La motivación te pone en marcha, el hábito te mantiene.",
-            "Hazlo ahora. A veces 'luego' se convierte en 'nunca'.",
-            "El éxito es la suma de pequeños esfuerzos repetidos día tras día.",
-            "No busques excusas, busca resultados.",
-            "Sé más fuerte que tus excusas.",
-            "La calidad de tus pensamientos determina la calidad de tu vida.",
-            "No es lo que te pasa, es cómo reaccionas a lo que te pasa.",
-            "Domina tu mente o ella te dominará a ti.",
-            "La incomodidad es el precio del crecimiento.",
-            "Si quieres algo que nunca has tenido, debes hacer algo que nunca has hecho.",
-            "El primer paso no te lleva a donde quieres ir, pero te saca de donde estás.",
-            "La constancia es la clave del éxito.",
-            "No esperes el momento perfecto, toma el momento y hazlo perfecto.",
-            "El miedo es una reacción, el coraje es una decisión.",
-            "Trabaja en silencio, deja que tu éxito haga el ruido.",
-            "Lo que no se mide, no se puede mejorar.",
-            "La acción cura el miedo y la procrastinación.",
-            "La paz mental es la verdadera meta.",
-            "Tu tiempo es limitado, no lo malgastes viviendo la vida de otro.",
-            "El orden externo refleja el orden interno.",
-            "Sé el arquitecto de tu propio destino.",
-            "Las oportunidades no pasan, las creas.",
-            "Cree que puedes y ya estás a mitad de camino.",
-            "El fracaso es solo la oportunidad de comenzar de nuevo con más inteligencia.",
-            "Acepta lo que no puedes cambiar, ten el coraje de cambiar lo que sí puedes.",
-            "La excelencia no es un acto, es un hábito.",
-            "No cuentes los días, haz que los días cuenten.",
-            "La verdadera libertad es la autodisciplina.",
-            "Si no te desafía, no te cambia.",
-            "El momento para actuar es ahora.",
-            "Mantén la calma y sigue adelante.",
-            "La paciencia es amarga, pero su fruto es dulce.",
-            "Invierte en ti mismo, es la mejor inversión.",
-            "La suerte favorece a la mente preparada.",
-            "El conocimiento es poder, pero la acción es la clave.",
-            "No te compares con nadie, mantén la cabeza alta.",
-            "La vida es 10% lo que te sucede y 90% cómo reaccionas ante ello.",
-            "Si no puedes hacer grandes cosas, haz cosas pequeñas de una manera grandiosa.",
-            "El éxito no es definitivo, el fracaso no es fatal: es el coraje para continuar lo que cuenta.",
-            "La mejor venganza es un éxito masivo.",
-            "No permitas que el ruido de las opiniones ajenas silencie tu voz interior.",
-            "La única forma de hacer un gran trabajo es amar lo que haces.",
-            "La vida se encoge o se expande en proporción a tu coraje.",
-            "No dejes que el ayer ocupe demasiado del hoy.",
-            "El hombre que mueve una montaña comienza cargando pequeñas piedras.",
-            "La mejor manera de predecir el futuro es crearlo.",
-            "La felicidad no es algo hecho. Proviene de tus propias acciones.",
-            "La mente es todo. En lo que piensas te conviertes.",
-            "Cáete siete veces, levántate ocho.",
-            "Todo lo que siempre has querido está al otro lado del miedo.",
-            "El momento es ahora.",
-            "Enfócate en la solución, no en el problema.",
-            "Actúa como si lo que haces marca la diferencia. Lo hace.",
-            "El único límite para nuestra realización del mañana serán nuestras dudas de hoy.",
-            "No esperes. El tiempo nunca será el 'justo'.",
-            "Puedes si crees que puedes.",
-            "El secreto para salir adelante es empezar.",
-            "La mejor preparación para mañana es hacer lo mejor hoy.",
-            "Cree en ti mismo y en todo lo que eres.",
-            "Mantén tu rostro siempre hacia la luz del sol y las sombras caerán detrás de ti.",
-            "El optimismo perpetuo es un multiplicador de fuerza.",
-            "La disciplina es el puente entre metas y logros.",
-            "Menos charla, más acción."
+            "La disciplina tarde o temprano vencerá a la inteligencia.", "El dolor de la disciplina es temporal; el del arrepentimiento es para siempre.", "Hazlo ahora. A veces 'luego' se convierte en 'nunca'.", "Tu única competencia es quien eras ayer.", "Resultados, no excusas.", "Sé el arquitecto de tu propio destino.", "Lo que no se mide, no se puede mejorar.", "La acción cura el miedo.", "La paz mental es la meta final.", "Cree que puedes y ya estás a mitad de camino.", "El hombre que mueve una montaña comienza cargando pequeñas piedras.", "Menos charla, más acción.", "El momento es ahora.", "Domina tu mente o ella te dominará a ti.", "Si quieres algo que nunca has tenido, haz algo que nunca has hecho.", "El éxito es la suma de pequeños esfuerzos.", "No cuentes los días, haz que los días cuenten.", "La constancia es la clave.", "Invierte en ti mismo.", "La suerte favorece a la mente preparada.", "Actúa como si lo que haces marca la diferencia.", "No te compares, enfócate.", "La vida es 10% lo que te pasa y 90% cómo reaccionas.", "La excelencia es un hábito.", "Mantén la calma y sigue adelante.", "Sé más fuerte que tus excusas."
         ];
 
-        // --- 1. FUNCIÓN DE CAMBIO DE MODO (CONTROL REMOTO) ---
-        // Vital para ir a arte.html
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === 'Enter') {
-                window.location.href = 'arte.html';
-            }
+            if (e.key === 'ArrowRight' || e.key === 'Enter') { window.location.href = 'arte.html'; }
         });
 
-        // 2. FOTOS (TURBO)
-        let fotos = [], fIdx = 0, currentLayer = 1;
+        // 1. FOTOS CON CARGA INSTANTÁNEA INICIAL
+        let fotos = [], fIdx = 0, currentLayer = 1, isFirstLoad = true;
         async function initPhotos() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${CONF.githubUser}/${CONF.repo}/contents/fotos`);
                 const data = await res.json();
                 fotos = data.filter(f => f.name.match(/\.(jpg|jpeg|png|gif)$/i)).map(f => f.download_url);
                 if(fotos.length > 0) loadNextPhoto();
-            } catch (e) {}
+                else document.getElementById('loader').innerText = "SIN FOTOS";
+            } catch (e) { document.getElementById('loader').innerText = "ERROR RED"; }
         }
         function loadNextPhoto() {
             if (!fotos.length) return;
-            const nextLayer = currentLayer === 1 ? 2 : 1;
+            const nextLayer = isFirstLoad ? 1 : (currentLayer === 1 ? 2 : 1);
             const imgUrl = fotos[fIdx];
             const tempImg = new Image();
-            // PROXY TURBO: Carga instantánea
             const turboUrl = `https://wsrv.nl/?url=${encodeURIComponent(imgUrl)}&w=1080&h=1920&fit=cover&output=webp`;
             tempImg.src = turboUrl;
             tempImg.onload = () => {
                 const nextEl = document.getElementById(`layer${nextLayer}`);
                 nextEl.style.backgroundImage = `url('${turboUrl}')`;
-                nextEl.classList.add('active');
-                document.getElementById(`layer${currentLayer}`).classList.remove('active');
+                if (isFirstLoad) {
+                    nextEl.classList.add('instant'); 
+                    document.getElementById('loader').style.display = 'none';
+                    isFirstLoad = false;
+                } else {
+                    nextEl.classList.remove('instant');
+                    nextEl.classList.add('active');
+                    if(document.getElementById(`layer${currentLayer}`)) {
+                        document.getElementById(`layer${currentLayer}`).classList.remove('active');
+                        document.getElementById(`layer${currentLayer}`).classList.remove('instant');
+                    }
+                }
                 currentLayer = nextLayer;
                 fIdx = (fIdx + 1) % fotos.length;
                 setTimeout(loadNextPhoto, 45000);
@@ -229,19 +176,64 @@
             tempImg.onerror = () => { fIdx = (fIdx + 1) % fotos.length; loadNextPhoto(); };
         }
 
-        // 3. CALENDARIO
-        function renderCalendar() {
+        // 2. CALENDARIO REAL (Fetch con Proxy)
+        async function fetchCalendar() {
+            if (CONF.calendarUrl === "PEGAR_AQUI_TU_LINK_ICAL") {
+                document.getElementById('calendar-box').innerHTML = '<div class="event-item">Falta Link Calendar</div>';
+                return;
+            }
+            try {
+                // Usamos Proxy para evitar CORS
+                const proxyUrl = "https://corsproxy.io/?" + encodeURIComponent(CONF.calendarUrl);
+                const res = await fetch(proxyUrl);
+                const text = await res.text();
+                parseICS(text);
+            } catch (e) { console.error("Error Calendario", e); }
+        }
+
+        function parseICS(icsData) {
+            const events = [];
+            const lines = icsData.split(/\r\n|\n|\r/);
+            let inEvent = false;
+            let currentEvent = {};
+
+            lines.forEach(line => {
+                if (line.startsWith('BEGIN:VEVENT')) { inEvent = true; currentEvent = {}; }
+                if (line.startsWith('END:VEVENT')) { 
+                    inEvent = false; 
+                    if(currentEvent.start && currentEvent.summary) events.push(currentEvent); 
+                }
+                if (inEvent) {
+                    if (line.startsWith('DTSTART')) currentEvent.start = parseIcsDate(line.split(':')[1]);
+                    if (line.startsWith('SUMMARY')) currentEvent.summary = line.substring(8);
+                }
+            });
+
+            // Filtrar eventos pasados y ordenar
+            const now = new Date();
+            const futureEvents = events.filter(e => e.start > now).sort((a, b) => a.start - b.start).slice(0, 3);
+            
             const box = document.getElementById('calendar-box');
             box.innerHTML = '';
-            AGENDA.forEach(item => {
+            futureEvents.forEach(item => {
+                const dateStr = item.start.toLocaleDateString('es-AR', {day: 'numeric', month: 'short'}).toUpperCase() + " " + item.start.getHours() + ":" + item.start.getMinutes().toString().padStart(2,'0');
                 const div = document.createElement('div');
                 div.className = 'event-item';
-                div.innerHTML = `<span class="event-date">${item.fecha}</span> <span class="event-title">${item.evento}</span>`;
+                div.innerHTML = `<span class="event-date">${dateStr}</span> <span class="event-title">${item.summary}</span>`;
                 box.appendChild(div);
             });
         }
 
-        // 4. CLIMA DETALLADO (HUMEDAD Y VIENTO)
+        function parseIcsDate(dateStr) {
+            // Formato básico ICS: YYYYMMDDTHHMMSS
+            if (!dateStr) return new Date();
+            const y = dateStr.substr(0,4), m = dateStr.substr(4,2), d = dateStr.substr(6,2);
+            const h = dateStr.substr(9,2), min = dateStr.substr(11,2), s = dateStr.substr(13,2);
+            return new Date(`${y}-${m}-${d}T${h}:${min}:${s}`);
+        }
+        setInterval(fetchCalendar, 300000); // 5 min
+
+        // 3. CLIMA, RELOJ, FRASES, MUSICA (Igual que siempre)
         async function updateWeather() {
             try {
                 const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=Rosario,AR&appid=${CONF.weatherKey}&units=metric&lang=es`);
@@ -249,14 +241,12 @@
                 document.getElementById('clima-temp').innerText = `${Math.round(data.main.temp)}°C`;
                 document.getElementById('clima-icon').src = `http://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
                 document.getElementById('clima-desc').innerText = data.weather[0].description.toUpperCase();
-                const hum = data.main.humidity;
                 const wind = Math.round(data.wind.speed * 3.6);
-                document.getElementById('clima-stats').innerText = `H: ${hum}% | V: ${wind}km/h`;
+                document.getElementById('clima-stats').innerText = `H: ${data.main.humidity}% | V: ${wind}km/h`;
             } catch (e) {}
         }
         setInterval(updateWeather, 600000);
 
-        // 5. RELOJ
         setInterval(() => {
             const d = new Date();
             let hours = d.getHours();
@@ -268,7 +258,6 @@
             document.getElementById('fecha').innerText = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'short' }).toUpperCase();
         }, 1000);
 
-        // 6. FRASES & PIXEL SHIFT
         let pIdx = 0;
         function updateFrase() {
             const box = document.getElementById('frase-box');
@@ -276,14 +265,13 @@
             setTimeout(() => { box.innerText = `"${FRASES[pIdx]}"`; box.style.opacity = 0.9; pIdx = (pIdx + 1) % FRASES.length; }, 1000);
         }
         setInterval(updateFrase, 15000);
-        
+
         function pixelShift() {
             const x = Math.floor(Math.random()*6)-3; const y = Math.floor(Math.random()*6)-3;
             document.querySelectorAll('.shift-protect').forEach(el => el.style.transform = `translate(${x}px, ${y}px)`);
         }
         setInterval(pixelShift, 20000);
 
-        // 7. MUSICA
         async function checkMusic() {
             try {
                 const res = await fetch(`https://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=${CONF.lastfmUser}&api_key=${CONF.lastfmKey}&format=json&limit=1`);
@@ -297,16 +285,17 @@
                     document.getElementById('t-name').innerText = track.name;
                     document.getElementById('t-artist').innerText = track.artist['#text'];
                     card.classList.add('visible');
-                    document.getElementById(`layer${currentLayer}`).style.opacity = 0.4;
+                    if(document.getElementById(`layer${currentLayer}`)) document.getElementById(`layer${currentLayer}`).style.opacity = 0.4;
                 } else {
                     card.classList.remove('visible');
-                    document.getElementById(`layer${currentLayer}`).style.opacity = 0.9;
+                    if(document.getElementById(`layer${currentLayer}`) && !document.getElementById(`layer${currentLayer}`).classList.contains('instant'))
+                        document.getElementById(`layer${currentLayer}`).style.opacity = 0.9;
                 }
             } catch (e) {}
         }
         setInterval(checkMusic, 5000);
 
-        initPhotos(); updateWeather(); updateFrase(); renderCalendar();
+        initPhotos(); updateWeather(); updateFrase(); fetchCalendar();
     </script>
 </body>
 </html>

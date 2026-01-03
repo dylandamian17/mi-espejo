@@ -2,14 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Modo Arte - Dylan</title>
+    <title>Modo Arte - Proporción Real</title>
     <style>
         body { margin: 0; background: #000; overflow: hidden; cursor: none; }
         
         #canvas {
+            /* Mantiene la rotación para tu monitor vertical */
             width: 100vh; height: 100vw; transform: rotate(90deg); transform-origin: center;
             position: absolute; top: 50%; left: 50%; margin-left: -50vh; margin-top: -50vw;
-            background-size: cover; background-position: center; background-repeat: no-repeat;
+            
+            /* CORRECCIÓN DE TAMAÑO: 'contain' para no estirar */
+            background-size: contain; 
+            background-position: center; 
+            background-repeat: no-repeat;
             background-color: #000;
         }
     </style>
@@ -21,46 +26,29 @@
         const CONF = { user: "dylandamian17", repo: "mi-espejo" };
         let obras = [], idx = 0;
 
-        // TECLAS DE CONTROL
         document.addEventListener('keydown', (e) => {
-            // VOLVER AL ESPEJO
             if (e.key === 'ArrowUp') window.location.href = 'index.html';
-            
-            // NAVEGACIÓN DE GALERÍA
             if (obras.length > 0) {
-                if (e.key === 'ArrowRight') { 
-                    idx = (idx + 1) % obras.length; 
-                    update(); 
-                }
-                if (e.key === 'ArrowLeft') { 
-                    idx = (idx - 1 + obras.length) % obras.length; 
-                    update(); 
-                }
+                if (e.key === 'ArrowRight') { idx = (idx + 1) % obras.length; update(); }
+                if (e.key === 'ArrowLeft') { idx = (idx - 1 + obras.length) % obras.length; update(); }
             }
         });
 
         async function init() {
             try {
-                // Obtenemos la lista de archivos de la carpeta /arte
-                const res = await fetch(`https://api.github.com/repos/${CONF.user}/${CONF.repo}/contents/arte`);
+                // El parámetro ?nocache evita que GitHub te devuelva una lista vieja de archivos
+                const res = await fetch(`https://api.github.com/repos/${CONF.user}/${CONF.repo}/contents/arte?t=${Date.now()}`);
                 const data = await res.json();
-                
-                // Filtramos solo imágenes y guardamos sus URLs
                 obras = data.filter(f => f.name.match(/\.(jpg|jpeg|png|webp)$/i)).map(f => f.download_url);
-                
-                if(obras.length > 0) {
-                    update();
-                }
-            } catch (e) { 
-                console.error("Error al conectar con la carpeta /arte en GitHub"); 
-            }
+                if(obras.length > 0) update();
+            } catch (e) { console.error("Error cargando carpeta /arte"); }
         }
 
         function update() {
             const el = document.getElementById('canvas');
-            // encodeURI soluciona el problema de los espacios y emojis en los nombres de archivos
-            const safeUrl = encodeURI(obras[idx]);
-            el.style.backgroundImage = `url('${safeUrl}')`;
+            // Usamos encodeURI para los nombres con espacios/emojis y un cache-buster al final
+            const imageUrl = encodeURI(obras[idx]) + "?t=" + Date.now();
+            el.style.backgroundImage = `url('${imageUrl}')`;
         }
 
         init();
